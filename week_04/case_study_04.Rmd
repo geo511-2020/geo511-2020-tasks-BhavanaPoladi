@@ -1,22 +1,18 @@
----
-title: "Case Study 04"
-author: Your Name
-date: August 1, 2020
-output: github_document
----
+library(tidyverse)
+library(nycflights13)
+library(dplyr)
 
-## First Header
+View(flights)
+View(airports)
 
-Comments
+#sort for max distance
+df1 <- flights[order(-flights$distance),]
+view(df1)
 
-```{r}
-summary(cars)
-```
+#slice the farthest dest
+df2=slice(df1,1)
 
-## Second Header
+#join  dest&faa from df2 & airports
+df3=inner_join(df2,airports, by=c("dest"="faa"))
 
-Comments
-
-```{r}
-plot(pressure)
-```
+print(df3$name)
