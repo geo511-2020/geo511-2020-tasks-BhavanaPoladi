@@ -10,5 +10,5 @@ ggplot(world,aes(x=gdpPercap, y=continent, color=continent))+
  
 
 
-reprex(outfile = "cs7",venue = c("html"))
+reprex(outfile = "cs7")
 
