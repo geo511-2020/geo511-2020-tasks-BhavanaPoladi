@@ -1,15 +1,11 @@
----
-title: "Case Study 11"
-author: Bhavana Poladi
-date: November 19, 2020
-output: html_document
-editor_options: 
-  chunk_output_type: console
----
- 
-# LOADING PACKAGES 
- 
-```{r loading packages, message=FALSE, warning=FALSE}
+Case Study 11
+================
+Bhavana Poladi
+November 19, 2020
+
+# LOADING PACKAGES
+
+``` r
 library(tidyverse)
 library(spData)
 library(sf)
@@ -24,9 +20,20 @@ registerDoParallel(4)
 getDoParWorkers()
 ```
 
+    ## [1] 4
+
+# API KEY
+
+``` r
+readRenviron("~/.Renviron")
+Sys.getenv("CENSUS_API_KEY")
+```
+
+    ## [1] "a436bdafda87b5a73060cb82c5910160a0c414e5"
+
 # DOWNLOADING THE CENSUS DATA
 
-```{r census data, message=FALSE, warning=FALSE, results='hide'}
+``` r
 racevars <- c(White = "P005003", 
               Black = "P005004", 
               Asian = "P005006", 
@@ -38,17 +45,16 @@ erie <- get_decennial(geography = "block", variables = racevars,
                       summary_var = "P001001", cache_table=T) 
 ```
 
-# CROPPING THE COUNTY LEVEL DATA 
+# CROPPING THE COUNTY LEVEL DATA
 
-```{r crop, message=FALSE, warning=FALSE}
+``` r
 county_crop <- c(xmin=-78.9,xmax=-78.85,ymin=42.888,ymax=42.92)
 erie2 <- st_crop(erie, county_crop)
 ```
 
+# GENERATING DOTS
 
-# GENERATING DOTS 
-
-```{r dots, message=FALSE, warning=FALSE}
+``` r
 var <- as.factor(erie2$variable)
 
 dots <- foreach(i = 1:4, .combine='rbind') %dopar% {
@@ -61,18 +67,11 @@ dots <- foreach(i = 1:4, .combine='rbind') %dopar% {
 } #got help from Ting Chang
 ```
 
-
 # PLOT
 
-```{r plot, message=FALSE, warning=FALSE, as.is=TRUE, cache=FALSE}
+``` r
 plot <- mapview(dots, zcol = "variable", cex = 1, lwd=0) 
 plot
 ```
-    
-  
 
-
-
-
-
-
+![](case_study_11_files/figure-gfm/plot-1.png)<!-- -->
