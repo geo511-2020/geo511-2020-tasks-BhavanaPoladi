@@ -1,13 +1,12 @@
----
-title: "Case Study 10"
-author: Bhavana Poladi
-date: 
-output: github_document
----
+Case Study 10
+================
+Bhavana Poladi
+
 # Satellite Remote Sensing
 
 ## Libraries
-```{r , warning=FALSE, message=FALSE}
+
+``` r
 library(raster)
 library(rasterVis)
 library(rgdal)
@@ -19,7 +18,8 @@ library(ncdf4)
 ```
 
 ## Land Use Land Cover
-```{r , results='hide', warning=FALSE, message=FALSE, error=FALSE}
+
+``` r
 dir.create("data",showWarnings = F)
 lulc_url="https://github.com/adammwilson/DataScienceData/blob/master/inst/extdata/appeears/MCD12Q1.051_aid0001.nc?raw=true"
 lst_url="https://github.com/adammwilson/DataScienceData/blob/master/inst/extdata/appeears/MOD11A2.006_aid0001.nc?raw=true"
@@ -30,7 +30,8 @@ lst=stack("data/MOD11A2.006_aid0001.nc",varname="LST_Day_1km")
 ```
 
 ### Load and Explore LULC Data in R
-```{r , warning=FALSE, message=FALSE}
+
+``` r
 #plot(lulc)
 lulc=lulc[[13]]
 #plot(lulc)
@@ -64,8 +65,18 @@ lcd=data.frame(
 kable(head(lcd))
 ```
 
+|                             | ID | landcover                   | col      |
+| :-------------------------- | -: | :-------------------------- | :------- |
+| Water                       |  0 | Water                       | \#000080 |
+| Evergreen Needleleaf forest |  1 | Evergreen Needleleaf forest | \#008000 |
+| Evergreen Broadleaf forest  |  2 | Evergreen Broadleaf forest  | \#00FF00 |
+| Deciduous Needleleaf forest |  3 | Deciduous Needleleaf forest | \#99CC00 |
+| Deciduous Broadleaf forest  |  4 | Deciduous Broadleaf forest  | \#99FF99 |
+| Mixed forest                |  5 | Mixed forest                | \#339966 |
+
 ### Plot
-```{r, warning=FALSE, message=FALSE}
+
+``` r
 lulc=as.factor(lulc)
 levels(lulc)=left_join(levels(lulc)[[1]],lcd)
 lulc_plot <- gplot(lulc)+
@@ -79,8 +90,11 @@ lulc_plot <- gplot(lulc)+
 lulc_plot
 ```
 
+![](case_study_10_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
 ## Land Surface Temperature
-```{r, warning=FALSE, message=FALSE}
+
+``` r
 # plot(lst[[1:12]])
 offs(lst)=-273.15
 # plot(lst[[1:10]])
@@ -93,7 +107,8 @@ lst=setZ(lst,tdates)
 ```
 
 ## Part 1
-```{r, warning=FALSE, message=FALSE, results='hide'}
+
+``` r
 lw = SpatialPoints(data.frame(x= -78.791547,y=43.007211))
 projection(lw) <- "+proj=longlat"
 spTransform(lw, proj4string(lst))
@@ -105,20 +120,24 @@ lw_combine <- data.frame(
   value=lw_temp)
 ```
 
-```{r task-1-results, warning=FALSE, message=FALSE}
+``` r
 lw_plot <- ggplot(lw_combine, aes(x=date, y=value)) +
   geom_point()+
   geom_smooth(span=0.05, n=500)
 lw_plot
 ```
 
+![](case_study_10_files/figure-gfm/task-1-results-1.png)<!-- -->
+
 ## Part 2
-```{r, warning=FALSE, message=FALSE}
+
+``` r
 tmonth <- as.numeric(format(getZ(lst),"%m"))
 lst_month <- stackApply(lst, tmonth, fun=mean)
 names(lst_month)=month.name
 ```
-```{r, warning=FALSE, message=FALSE}
+
+``` r
 lst_monthly_plot <-gplot(lst_month) +
   geom_raster(aes(fill=value))+
   facet_wrap(~ variable)+
@@ -129,12 +148,33 @@ lst_monthly_plot <-gplot(lst_month) +
   theme(axis.text.x=element_blank(),
         axis.text.y=element_blank())
 lst_monthly_plot
+```
+
+![](case_study_10_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+``` r
 monthly_mean <- cellStats(lst_month, mean)
 kable(monthly_mean, format='simple', col.names='Mean')
 ```
 
+|           |       Mean |
+| --------- | ---------: |
+| January   | \-2.127506 |
+| February  |   8.710271 |
+| March     |  18.172077 |
+| April     |  23.173591 |
+| May       |  26.990005 |
+| June      |  28.840144 |
+| July      |  27.358260 |
+| August    |  22.927727 |
+| September |  15.477510 |
+| October   |   8.329881 |
+| November  |   0.586179 |
+| December  | \-4.754134 |
+
 ## Part 3
-```{r, warning=FALSE, message=FALSE}
+
+``` r
 lulc_resample <- resample(lulc, lst, method='ngb')
 lulc_temp = cbind.data.frame(
   values(lst_month),
@@ -145,6 +185,18 @@ tidy_lulc_temp <- tidy_lulc_temp %>%
   mutate(ID=as.numeric(ID),
          month=factor(month,levels=month.name,ordered=T))
 merge_lulc_temp <- left_join(tidy_lulc_temp, lcd)
-temp_urban <- merge_lulc_temp %>%
+urban_forest_temp <- merge_lulc_temp %>%
   filter(landcover%in%c("Urban & built-up","Deciduous Broadleaf forest"))
 ```
+
+``` r
+library(ggridges)
+library(viridisLite)
+urban_forest_plot <- ggplot(urban_forest_temp, aes(x=value, y=month, fill=stat(x)))+
+  geom_density_ridges_gradient(scale=4, rel_min_height=0.001)+
+  scale_fill_viridis_c(name="Temp.(C)", option = "C")+
+  facet_wrap(~ landcover)
+urban_forest_plot
+```
+
+![](case_study_10_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
