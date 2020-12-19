@@ -1,7 +1,47 @@
 ---
 title: "Case Study 12"
-author: Your Name
-date: August 1, 2020
+author: Bhavana Poladi
+date: 
 output: github_document
 ---
- 
+
+# Dynamic HTML graph of Daily Temperatures
+
+```{r, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggmap)
+library(htmlwidgets)
+library(widgetframe)
+library(tidyverse)
+library(rnoaa)
+library(xts)
+library(dygraphs)
+```
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+d=meteo_tidy_ghcnd(stationid = "USW00014733",
+                   date_min = "2016-01-01", 
+                   var = c("TMAX", "PRCP", "SNOW", "SNWD"),
+                   keep_flags=T) %>% 
+   mutate(date=as.Date(date),
+          tmax=as.numeric(tmax)/10) #Divide the tmax data by 10 to convert to degrees.
+```
+
+```{r, message=FALSE, warning=FALSE}
+xts_timeseries <- xts(d$tmax, order.by = d$date)
+dygraph(xts_timeseries, main="Daily Maximum Temperature in Buffalo, NY") %>%
+    dyRangeSelector(dateWindow = c("2020-01-01", "2020-10-31"))
+```
+
+```{r, message=FALSE, warning=FALSE}
+final_plot <- filter(d, date >= "2020-01-01" & date <= "2020-10-31")
+final_plot_xts <- xts(final_plot$tmax, order.by = final_plot$date)
+precipitation <- xts(final_plot$prcp, order.by = final_plot$date)
+final <- cbind(final_plot_xts, precipitation)
+dygraph(final, main = "Maximum Precipitation in Buffalo, NY, 2020") %>%
+  dySeries("final_plot_xts", label = "Maximum Precipitation") %>%
+  dySeries("snow_19_xts", label = "Snowfall") %>%
+  dyOptions(stackedGraph = TRUE) %>%
+  dyRangeSelector()
+```
