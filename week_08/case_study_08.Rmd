@@ -1,7 +1,46 @@
 ---
-title: "Case Study 08"
-author: Your Name
-date: August 1, 2020
-output: github_document
+title: "Carbon Dioxide Concentrations at Mauna Loa"
+author: Bhavana Poladi
+date: 
+output:
+  html_document: default
+  github_document: default
+  powerpoint_presentation: default
+  word_document: default
 ---
- 
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(kableExtra)
+#### data ########
+data <- read_table("ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_annmean_mlo.txt", skip=56)
+data <- data %>%
+  select(year, mean, unc)
+```
+
+
+```{r timeseries-plot, echo=F, warning=F, message=F}
+######## timewseries plot ########
+timeseries_plot <- ggplot(data=data) +
+  geom_line(aes(x=year, y=mean)) +
+  labs(x="Year", y="Mean Annual CO_2 (in ppm)") +
+  theme_classic()
+timeseries_plot
+```
+
+
+```{r top10-co2, echo=F, warning=F, message=F}
+table <- data %>%
+  top_n(10, mean) %>%
+  arrange(desc(mean)) %>%
+  select(year, mean) %>%
+  knitr::kable(format="html") %>%
+  kable_styling() %>%  
+  as_image(width=10, file="table_casestudy8.png")
+table               ##kable_styling from Ting
+```
+
+
+<!-- rmarkdown::render("case_study_08.Rmd", output_format="all") -->
